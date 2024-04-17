@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <!-- fault prediction script -->
+  <!-- <script src="app.js"></script> -->
   <!-- jquery cdn -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
@@ -134,7 +136,7 @@
           <div class="col-md-6">
             
             <!-- Power Consumption -->
-            <div class="card card-primary">
+            <!-- <div class="card card-primary">
               <div class="card-header">
                 <h3 class="card-title">Power Consumption</h3>
 
@@ -151,9 +153,9 @@
                 <div class="chart">
                   <iframe width="100%" height="250px" style="border: 0px solid #cccccc;" src="https://thingspeak.com/channels/2427565/widgets/811600"></iframe>
                 </div>
-              </div>
+              </div> -->
               <!-- /.card-body -->
-            </div>
+            <!-- </div> -->
             
             <!-- Power Consumption History-->
             <div class="card card-primary">
@@ -176,7 +178,6 @@
               </div>
               <!-- /.card-body -->
             </div>
-            <!-- /.card -->
 
             <!-- Fault Prediction -->
             <div class="card card-primary">
@@ -193,7 +194,20 @@
                 </div>
               </div>
               <div class="card-body">
-                <h2 id="soln">Solution: </h2>
+                <div class="chart">
+                  <form class="form">
+                    <h2 >Fault : </h2>
+                    <h3 id="fault" style="font-style: bold;"></h3>
+                    <br>
+                    <h2>Solution : </h2>
+                    <h3 id="solutions"></h3>
+                    <!-- <input class="area"  type="text" id="uifault" name="Squareft" value="<?php echo $_GET['val'];?>" disabled/> -->
+                    <!-- http://streetlight.great-site.net/faultapi.php?fault=Bulb%20fault -->
+                    <!-- <br><br> -->
+                    <!-- <button class="submit" onclick="onClickedPredictSolution()" type="button">Solution</button> -->
+                    <!-- <div id="uiPredictsoln" class="result">	<h2></h2> </div> -->
+                  </form>
+                </div>
               </div>
               <!-- /.card-body -->
             </div>
@@ -234,19 +248,48 @@
 <!-- Page specific script -->
 <script>
   $(document).ready(function(){
+    var last_id;
+    var fault_status;
+    var fault;
+    var fault_solution;
     $.ajax({
-      type: "get",
-      url: "https://streetlight.great-site.net/faultapi.php?fault=Bulb%20fault",
-      data: "",
+      url: 'https://api.thingspeak.com/channels/2427565/feeds.json?results=2',
+      type: 'GET',
+      data: '',
       success:function(result){
-        result=JSON.parse(result);
-        alert(result.solution);
-        $("#soln").text(result.solution); 
+        //last_entry_id = result.channel.last_entry_id;
+        last_id = result.feeds.length;
+        fault_status = result.feeds[last_id-1].field7;
+        //console.log(fault_status);
+        if(fault_status == 0){
+          fault_solution = "...";
+        }else if(fault_status == 1){
+          fault_solution = "Repair the Wire";
+        }else if(fault_status == 2){
+          fault_solution = "Replace the bulb";
+        }else if(fault_status == 3){
+          fault_solution = "Unwanted Activity notice it";
+        }else if(fault_status == 4){
+          fault_solution = "Adjust the Fixture";
+        }
+
+        if(fault_status == 0){
+          fault = "No Fault Occured";
+        }else if(fault_status == 1){
+          fault = "Wire Fault";
+        }else if(fault_status == 2){
+          fault = "Bulb Fault";
+        }else if(fault_status == 3){
+          fault = "Vibration Detected";
+        }else if(fault_status == 4){
+          fault = "Fixture Position changed";
+        }
+        $('#fault').html(fault);
+        $('#solutions').html(fault_solution);
       }
     });
   });
 </script>
-<!-- Page specific script -->
 <script>
   $(function () {
     /* ChartJS
